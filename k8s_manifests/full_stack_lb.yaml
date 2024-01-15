@@ -11,7 +11,7 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - host: app.trainwithshubham.com
+    - host: app.devopswithpranay.com
       http:
         paths:
           - path: /api
