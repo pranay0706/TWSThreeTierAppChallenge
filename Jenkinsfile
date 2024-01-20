@@ -27,14 +27,14 @@ pipeline {
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/pranay0706/TWSThreeTierAppChallenge']])
             }
         }
-        stage("Remove Existing Docker Images") {
-            steps {
-                script {
-                    // Remove existing Docker images
-                    sh 'docker rmi -f $(docker images -q)'
-                }
-            }
-        }
+        // stage("Remove Existing Docker Images") {
+        //     steps {
+        //         script {
+        //             // Remove existing Docker images
+        //             sh 'docker rmi -f $(docker images -q)'
+        //         }
+        //     }
+        // }
         stage("Build Docker Images") {
             steps {
                 script {
@@ -115,6 +115,14 @@ pipeline {
                     dir('terraform-jenkins-eks') {
                         sh 'terraform $action --auto-approve'
                     }
+                }
+            }
+        }
+        stage('Deploy ArgoCd on the EKS cluster'){
+            steps{
+                script{
+                    sh 'kubectl create namespace argocd'
+                    sh 'kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml'
                 }
             }
         }
