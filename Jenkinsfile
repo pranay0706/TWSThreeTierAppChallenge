@@ -2,8 +2,10 @@ pipeline {
     agent any
     environment {
         // Set your AWS credentials here
-        AWS_REGION = credentials('REGION')
+        AWS_DEFAULT_REGION = credentials('REGION')
         AWS_ECR_REPO = credentials('ECR_REPO')
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         
         // Define backend and frontend repositories
         BACKEND_REPO = 'backend'
@@ -67,6 +69,52 @@ pipeline {
 
                     // Push frontend-tier Docker images to AWS ECR
                     sh "docker push ${AWS_ECR_REPO}/${FRONTEND_REPO}:latest"
+                }
+            }
+        }
+        stage('Initializing Terraform'){
+            steps{
+                script{
+                    dir('terraform-jenkins-eks'){
+                        sh 'terraform init'
+                    }
+                }
+            }
+        }
+        stage('Formatting Terraform Code'){
+            steps{
+                script{
+                    dir('terraform-jenkins-eks'){
+                        sh 'terraform fmt'
+                    }
+                }
+            }
+        }
+        stage('Validating Terraform'){
+            steps{
+                script{
+                    dir('terraform-jenkins-eks'){
+                        sh 'terraform validate'
+                    }
+                }
+            }
+        }
+        stage('Previewing the Infra using Terraform'){
+            steps{
+                script{
+                    dir('terraform-jenkins-eks'){
+                        sh 'terraform plan'
+                    }
+                    input(message: "Are you sure to proceed?", ok: "Proceed")
+                }
+            }
+        }
+        stage('Creating/Destroying an EKS Cluster'){
+            steps{
+                script{
+                    dir('terraform-jenkins-eks') {
+                        sh 'terraform $action --auto-approve'
+                    }
                 }
             }
         }
