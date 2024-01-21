@@ -5,6 +5,7 @@ variable "vpc_cidr_eks" {
 
 variable "private_subnet_eks" {
   description = "Private Subnet for EKS"
+  type = list(string)
 }
 
 variable "public_subnet_eks" {
