@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         // Set your AWS credentials here
-        AWS_DEFAULT_REGION = credentials('REGION')
+        AWS_DEFAULT_REGION = credentials('AWS_DEFAULT_REGION')
         AWS_ECR_REPO = credentials('ECR_REPO')
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
@@ -16,7 +16,7 @@ pipeline {
             steps {
                 script {
                     // Authenticate Docker with AWS ECR
-                    sh "aws ecr-public get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPO}"
+                    sh "aws ecr-public get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPO}"
                 }
             }
         }
@@ -121,6 +121,8 @@ pipeline {
         stage('Deploy ArgoCd on the EKS cluster'){
             steps{
                 script{
+                    sh 'sudo rm -rf .kube/*'
+                    sh 'aws eks update-kubeconfig --name my-3tiereks-cluster --region us-east-1 --kubeconfig ~/.kube/config'
                     sh 'kubectl create namespace argocd'
                     sh 'kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml'
                 }
